@@ -1,0 +1,62 @@
+body {
+  margin: 0;
+  padding-bottom: 3rem;
+  font-family: "Lucida Console", "Courier New", monospace;
+  background: black;
+}
+
+#form {
+  background: black;
+  padding: 0.25rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 3rem;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+}
+#name {
+  border: none;
+  padding: 0 1rem;
+  flex-grow: 1;
+  margin: 0.25rem;
+  max-width: 120px;
+  background: black;
+  border: 1px solid pink;
+  color: #f9f9f9;
+}
+#input {
+  border: 1px solid pink;
+  padding: 0 1rem;
+  flex-grow: 1;
+  margin: 0.25rem;
+  background: black;
+  color: #f9f9f9;
+}
+input:focus {
+  outline: 1px solid rgb(0, 233, 241);
+}
+#form > button {
+  background: black;
+  border: 1px solid rgb(0, 233, 241);
+  padding: 0 1rem;
+  margin: 0.25rem;
+  border-radius: 3px;
+  outline: none;
+  color: #fff;
+}
+
+#messages {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  color: #f9f9f9;
+}
+#messages > li {
+  padding: 0.5rem 1rem;
+}
+#messages > li:nth-child(odd) {
+  background: black;
+}
