@@ -1,12 +1,14 @@
+* {
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
 body {
   margin: 0;
   padding-bottom: 3rem;
-  font-family: "Lucida Console", "Courier New", monospace;
-  background: black;
+  background: #f9f9f9;
 }
 
 #form {
-  background: black;
   padding: 0.25rem;
   position: fixed;
   bottom: 0;
@@ -18,45 +20,38 @@ body {
   backdrop-filter: blur(10px);
 }
 #name {
-  border: none;
+  border: 1px solid #ff69b4;
+  border-radius: 3px;
+  color: #2f2f2f;
   padding: 0 1rem;
   flex-grow: 1;
   margin: 0.25rem;
   max-width: 120px;
-  background: black;
-  border: 1px solid pink;
-  color: #f9f9f9;
 }
 #input {
-  border: 1px solid pink;
-  padding: 0 1rem;
+  border: 1px solid #ff69b4;
+  border-radius: 3px;
+  color: #2f2f2f;
   flex-grow: 1;
+  padding: 0 1rem;
   margin: 0.25rem;
-  background: black;
-  color: #f9f9f9;
-}
-input:focus {
-  outline: 1px solid rgb(0, 233, 241);
 }
 #form > button {
-  background: black;
-  border: 1px solid rgb(0, 233, 241);
-  padding: 0 1rem;
-  margin: 0.25rem;
+  border: 1px solid #ff69b4;
+  background-color: #f9f9f9;
   border-radius: 3px;
-  outline: none;
-  color: #fff;
+  color: #2f2f2f;
+  margin: 0.25rem;
 }
 
 #messages {
   list-style-type: none;
   margin: 0;
   padding: 0;
-  color: #f9f9f9;
 }
 #messages > li {
   padding: 0.5rem 1rem;
 }
 #messages > li:nth-child(odd) {
-  background: black;
+  background: #f9f9f9;
 }
