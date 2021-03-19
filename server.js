@@ -15,28 +15,41 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     // Show connect
     console.log(`connected :: ${socket.id}`);
-    io.emit('chat message', `--- ${socket.id} joined ${String.fromCodePoint(0x1F37B)} ---`);
+    let intro = {
+      sender: `${String.fromCodePoint(0x1F4BB)}`,
+      text: `--- ${socket.id} joined ${String.fromCodePoint(0x1F37B)} ---`,
+      type: `connectionUpdate`,
+      timestamp: new Date()
+    };
+    io.emit('chat message', intro);
 
     // Show disconnect
     socket.on('disconnect', () => {
       console.log(`${socket.id} :: disconnected`);
-      io.emit('chat message', `--- ${socket.id} left ${String.fromCodePoint(0x1F695)} ---`);
+      let outro = {
+        sender: `${String.fromCodePoint(0x1F4BB)}`,
+        text: `--- ${socket.id} left ${String.fromCodePoint(0x1F695)} ---`,
+        type: `connectionUpdate`,
+        timestamp: new Date()
+      };  
+      io.emit('chat message', outro);
     });
 
     // RECEIVE chat message from CLIENT THEN ...
     socket.on('chat message', (msg) => {
-      console.log(msg);
       
       toxicity.load(0.8).then(model => {
       
         model.classify(msg.text).then(predictions => {
-          let matches = predictions.filter( (p) => p.results[0].match === true);
+          let matches = predictions.filter( (p) => p.results[0].match === true );
           console.log(matches);
 
           if(matches.length > 0){
-            io.emit('chat message', `${msg.sender}: ${String.fromCodePoint(0x1F6AB).repeat(3)}`);
+            msg.text = String.fromCodePoint(0x1F6AB).repeat(3);
+            io.emit('chat message', msg);
           } else{
-            io.emit('chat message', `${msg.sender}: ${msg.text}`);
+            console.log(msg);
+            io.emit('chat message', msg);
           }
 
         });

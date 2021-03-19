@@ -1,9 +1,9 @@
-var socket = io();
+const socket = io();
         
-var messages = document.getElementById('messages');
-var form = document.getElementById('form');
-var displayName = document.getElementById('name');
-var input = document.getElementById('input');
+let messages = document.getElementById('messages');
+let form = document.getElementById('form');
+let displayName = document.getElementById('name');
+let input = document.getElementById('input');
 
 // CLIENT EMIT chat message ON SUBMIT to SERVER
 form.addEventListener('submit', function(e) {
@@ -11,7 +11,9 @@ form.addEventListener('submit', function(e) {
     if (input.value) {
         const msg = {
             sender: displayName.value === undefined || displayName.value === '' ? socket.id : displayName.value,
-            text: input.value
+            text: input.value,
+            type: 'message',
+            timestamp: new Date()
         };
         socket.emit('chat message', msg);
         input.value = '';
@@ -21,7 +23,7 @@ form.addEventListener('submit', function(e) {
 // CLIENT RECEIVE chat message FROM SERVER
 socket.on('chat message', function(msg) {
     var item = document.createElement('li');
-    item.textContent = msg;
+    item.textContent = `(${msg.timestamp}) ${msg.sender}${msg.type == 'message' ? ':' : ''} ${msg.text}`;
     messages.appendChild(item);
     window.scrollTo(0, document.body.scrollHeight);
 });
