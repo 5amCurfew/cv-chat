@@ -1,5 +1,5 @@
 const socket = io();
-        
+console.log(socket);
 let messages = document.getElementById('messages');
 let form = document.getElementById('form');
 let displayName = document.getElementById('name');
@@ -13,7 +13,8 @@ form.addEventListener('submit', function(e) {
             sender: displayName.value === undefined || displayName.value === '' ? socket.id : displayName.value,
             text: input.value,
             type: 'message',
-            timestamp: new Date()
+            timestamp: new Date(),
+            socketId: socket.id
         };
         socket.emit('chat message', msg);
         input.value = '';
@@ -22,9 +23,26 @@ form.addEventListener('submit', function(e) {
 
 // CLIENT RECEIVE chat message FROM SERVER
 socket.on('chat message', function(msg) {
-    var item = document.createElement('li');
-    item.textContent = `(${msg.timestamp}) ${msg.sender}${msg.type == 'message' ? ':' : ''} ${msg.text}`;
-    messages.appendChild(item);
+    const align = msg.socketId === socket.id ? 'text-align: left;' : 'text-align: right;'
+    let messageMarkup;
+
+    if(msg.type === 'message'){
+        messageMarkup = `
+            <li class="message">
+                <div class="messageSender" style="font-weight: bold; ${align}">${msg.sender}</div>
+                <div class="messageSender" style="font-size: 12px; ${align}">${msg.timeFormatted}</div>
+                <div class="messageText" style="${align}">${msg.text}</div>  
+            </li>
+        `
+    } else{
+        messageMarkup = `
+            <li class="message">
+                <div class="messageText" style="border: 0.5px solid grey; font: 5px; text-align: center">${msg.sender} ${msg.text}</div>  
+            </li>
+        `
+    };
+
+    messages.insertAdjacentHTML('beforeEnd', messageMarkup);
     window.scrollTo(0, document.body.scrollHeight);
 });
 

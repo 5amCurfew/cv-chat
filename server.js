@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const dayjs = require('dayjs')
 require('@tensorflow/tfjs-node');
 const toxicity = require('@tensorflow-models/toxicity');
 
@@ -17,7 +18,7 @@ io.on('connection', (socket) => {
     console.log(`connected :: ${socket.id}`);
     let intro = {
       sender: `${String.fromCodePoint(0x1F4BB)}`,
-      text: `--- ${socket.id} joined ${String.fromCodePoint(0x1F37B)} ---`,
+      text: `${socket.id} joined ${String.fromCodePoint(0x1F37B)}`,
       type: `connectionUpdate`,
       timestamp: new Date()
     };
@@ -28,7 +29,7 @@ io.on('connection', (socket) => {
       console.log(`${socket.id} :: disconnected`);
       let outro = {
         sender: `${String.fromCodePoint(0x1F4BB)}`,
-        text: `--- ${socket.id} left ${String.fromCodePoint(0x1F695)} ---`,
+        text: ` ${socket.id} left ${String.fromCodePoint(0x1F695)}`,
         type: `connectionUpdate`,
         timestamp: new Date()
       };  
@@ -37,7 +38,9 @@ io.on('connection', (socket) => {
 
     // RECEIVE chat message from CLIENT THEN ...
     socket.on('chat message', (msg) => {
-      
+      msg.timeFormatted = dayjs().format('HH:mm')
+      console.log(msg);
+
       toxicity.load(0.8).then(model => {
       
         model.classify(msg.text).then(predictions => {
@@ -48,7 +51,6 @@ io.on('connection', (socket) => {
             msg.text = String.fromCodePoint(0x1F6AB).repeat(3);
             io.emit('chat message', msg);
           } else{
-            console.log(msg);
             io.emit('chat message', msg);
           }
 
