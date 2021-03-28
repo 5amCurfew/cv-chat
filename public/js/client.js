@@ -35,9 +35,10 @@ socket.on('chat message', function(msg) {
             </li>
         `
     } else{
+        msg.welcomeMessage = msg.type == 'connect' && msg.context == socket.id ? 'Welcome to my little CV-Chat! Toxic messages are blocked!' : msg.text;
         messageMarkup = `
             <li class="message">
-                <div class="messageText" style="border: 0.5px solid grey; font: 5px; text-align: center">${msg.sender} ${msg.text}</div>  
+                <div class="messageText" font: 5px; text-align: center">${msg.sender} ${msg.welcomeMessage}</div>  
             </li>
         `
     };

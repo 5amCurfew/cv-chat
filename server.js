@@ -15,37 +15,35 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
     // Show connect
-    console.log(`connected :: ${socket.id}`);
     let intro = {
-      sender: `${String.fromCodePoint(0x1F4BB)}`,
+      sender: `${String.fromCodePoint(0x1F916)}`,
       text: `${socket.id} joined ${String.fromCodePoint(0x1F37B)}`,
-      type: `connectionUpdate`,
+      type: `connect`,
+      context: `${socket.id}`,
       timestamp: new Date()
     };
     io.emit('chat message', intro);
 
     // Show disconnect
     socket.on('disconnect', () => {
-      console.log(`${socket.id} :: disconnected`);
       let outro = {
-        sender: `${String.fromCodePoint(0x1F4BB)}`,
+        sender: `${String.fromCodePoint(0x1F916)}`,
         text: ` ${socket.id} left ${String.fromCodePoint(0x1F695)}`,
-        type: `connectionUpdate`,
+        type: `disconnect`,
+        context: `${socket.id}`,
         timestamp: new Date()
-      };  
+      }; 
       io.emit('chat message', outro);
     });
 
     // RECEIVE chat message from CLIENT THEN ...
     socket.on('chat message', (msg) => {
       msg.timeFormatted = dayjs().format('HH:mm')
-      console.log(msg);
 
       toxicity.load(0.8).then(model => {
       
         model.classify(msg.text).then(predictions => {
           let matches = predictions.filter( (p) => p.results[0].match === true );
-          console.log(matches);
 
           if(matches.length > 0){
             msg.text = String.fromCodePoint(0x1F6AB).repeat(3);
@@ -61,5 +59,5 @@ io.on('connection', (socket) => {
 });
 
 http.listen(PORT, () => {
-  console.log(`cv-chat socket.io server running at http://localhost:${PORT}/`);
+  console.log(`CV-Chat server running on http://localhost:${PORT}/`);
 });
