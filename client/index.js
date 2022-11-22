@@ -5,7 +5,9 @@ let form = document.getElementById('form');
 let displayName = document.getElementById('name');
 let input = document.getElementById('input');
 
-// CLIENT EMIT chat message ON SUBMIT to SERVER
+///////////////////////////////
+// CLIENT EMIT
+///////////////////////////////
 form.addEventListener('submit', function(e) {
     e.preventDefault();
     if (input.value) {
@@ -16,13 +18,15 @@ form.addEventListener('submit', function(e) {
             timestamp: new Date(),
             socketId: socket.id
         };
-        socket.emit('chat message', msg);
+        socket.emit('chatMessage', msg);
         input.value = '';
     }
 });
 
-// CLIENT RECEIVE chat message FROM SERVER
-socket.on('chat message', function(msg) {
+///////////////////////////////
+// CLIENT RECEIVE
+///////////////////////////////
+socket.on('chatMessage', function(msg) {
     const align = msg.socketId === socket.id ? 'text-align: left;' : 'text-align: right;'
     let messageMarkup;
 
@@ -35,7 +39,7 @@ socket.on('chat message', function(msg) {
             </li>
         `
     } else{
-        msg.welcomeMessage = msg.type == 'connect' && msg.context == socket.id ? 'Welcome to my little CV-Chat! Toxic messages are blocked!' : msg.text;
+        msg.welcomeMessage = msg.type == 'connect' && msg.context == socket.id ? 'Welcome to the chat! Toxic messages are blocked!' : msg.text;
         messageMarkup = `
             <li class="message">
                 <div class="messageText" font: 5px; text-align: center">${msg.sender} ${msg.welcomeMessage}</div>  
