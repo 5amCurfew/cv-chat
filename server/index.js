@@ -108,7 +108,8 @@ io.on('connection', (socket) => {
       sender: `${String.fromCodePoint(0x1F916)}`,
       text: ` ${socket.id} left ${String.fromCodePoint(0x1F695)}`,
       type: `disconnect`,
-      context: `server`,
+      context: socket.id,
+      isServerMessage: true,
       timestamp: new Date()
     }; 
     io.emit('chatMessage', outro);
