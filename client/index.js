@@ -27,25 +27,15 @@ form.addEventListener('submit', function(e) {
 // CLIENT RECEIVE
 ///////////////////////////////
 socket.on('chatMessage', function(msg) {
-    const align = msg.socketId === socket.id ? 'text-align: left;' : 'text-align: right;'
-    let messageMarkup;
 
-    if(msg.type === 'message'){
-        messageMarkup = `
-            <li class="message">
-                <div class="messageSender" style="font-weight: bold; ${align}">${msg.sender}</div>
-                <div class="messageSender" style="font-size: 12px; ${align}">${msg.timeFormatted}</div>
-                <div class="messageText" style="${align}">${msg.text}</div>  
-            </li>
-        `
-    } else{
-        msg.welcomeMessage = msg.type == 'connect' && msg.context == socket.id ? 'Welcome to the chat! Toxic messages are blocked!' : msg.text;
-        messageMarkup = `
-            <li class="message">
-                <div class="messageText" font: 5px; text-align: center">${msg.sender} ${msg.welcomeMessage}</div>  
-            </li>
-        `
-    };
+    let align = msg.socketId === socket.id ? 'text-align: left;' : msg.isServerMessage ? 'text-align: center;' : 'text-align: right;'
+    let messageMarkup = `
+        <li class="message">
+            <div class="messageSender" style="font-weight: bold; ${align}">${msg.sender}</div>
+            <div class="messageSender" style="font-size: 12px; ${align}">${msg.timeFormatted}</div>
+            <div class="messageText" style="${align}">${msg.text}</div>  
+        </li>
+    `
 
     messages.insertAdjacentHTML('beforeEnd', messageMarkup);
     window.scrollTo(0, document.body.scrollHeight);
