@@ -96,7 +96,8 @@ io.on('connection', (socket) => {
       type: `connect`,
       socketId: socket.id,
       isServerMessage: true,
-      timestamp: new Date()
+      timestamp: new Date(),
+      timeFormatted: dayjs().format('ddd, D MMMM (HH:mm)')
     }
   );
 
@@ -110,7 +111,8 @@ io.on('connection', (socket) => {
       type: `disconnect`,
       context: socket.id,
       isServerMessage: true,
-      timestamp: new Date()
+      timestamp: new Date(),
+      timeFormatted: dayjs().format('ddd, D MMMM (HH:mm)')
     }; 
     io.emit('chatMessage', outro);
   });
@@ -121,42 +123,43 @@ io.on('connection', (socket) => {
   socket.on('chatMessage', (msg) => {
 
     msg.timeFormatted = dayjs().format('ddd, D MMMM (HH:mm)')
+    msg.isServerMessage = false
 
     ///////////////////////////////
     // Toxicity
     ///////////////////////////////
-    toxicity
-      .load(0.8)
-      .then(model => {
-        model.classify(msg.text).then(predictions => {
+    predictSentiment(msg.text)
+      .then((sentimentScore) => {
+        msg.sentimentScore = sentimentScore
 
-          let matches = predictions.filter( (p) => p.results[0].match === true );
-
-          if(matches.length > 0){
-            msg.text = String.fromCodePoint(0x1F6AB).repeat(3);
-            io.emit('chatMessage', msg);
-          } else{
-            io.emit('chatMessage', msg);
-          }
-        });
-    })
-    ///////////////////////////////
-    // Sentiment
-    ///////////////////////////////
-    .then( () => {
-      predictSentiment(msg.text).then((sentimentScore) => {
-        let sentimentMsg = {
-          sender: `${String.fromCodePoint(0x1F916)}`,
-          text: `Sentiment score: ${Math.round(sentimentScore*100)/100}`,
-          type: 'sentiment',
-          timestamp: new Date(),
-          socketId: 'server',
-          isServerMessage: true,
-          timeFormatted: dayjs().format('ddd, D MMMM (HH:mm)')
+        if(msg.sentimentScore > 0.8){
+          msg.sentimentIcon = '&#128540;'
+        }else if(msg.sentimentScore > 0.4){
+          msg.sentimentIcon = '&#128528;'
+        }else{
+          msg.sentimentIcon = '&#128544;'
         }
-        io.emit('chatMessage', sentimentMsg)
-      });
-    });
+
+      })
+      .then( () => {
+        toxicity.load(0.8)
+          .then(model => {
+            model.classify(msg.text).then(predictions => {
+    
+              let matches = predictions.filter( (p) => p.results[0].match === true );
+              msg.isToxic = matches.length > 0 ? true : false
+              console.log(msg)
+
+              if(msg.isToxic){
+                msg.text = String.fromCodePoint(0x1F6AB).repeat(3);
+                io.emit('chatMessage', msg);
+              } else{
+                io.emit('chatMessage', msg);
+              }
+              
+            })
+          })
+      })
 
   });
 
