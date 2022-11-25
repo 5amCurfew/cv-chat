@@ -31,7 +31,7 @@ socket.on('chatMessage', function(msg) {
     let align = msg.isServerMessage ? 'text-align: center;' : msg.socketId === socket.id ? 'text-align: left;' : 'text-align: right;'
     let messageMarkup = `
         <li class="message">
-            <div class="messageSender" style="font-weight: bold; ${align}">${msg.sender} ${msg.sentimentIcon}</div>
+            <div class="messageSender" style="font-weight: bold; ${align}">${msg.sender} ${msg.sentimentIcon === null ? '' : msg.sentimentIcon}</div>
             <div class="messageSender" style="font-size: 12px; ${align}">${msg.timeFormatted}</div>
             <div class="messageText" style="${align}">${msg.text}</div>  
         </li>

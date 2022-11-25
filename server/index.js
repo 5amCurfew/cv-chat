@@ -97,7 +97,9 @@ io.on('connection', (socket) => {
       socketId: socket.id,
       isServerMessage: true,
       timestamp: new Date(),
-      timeFormatted: dayjs().format('ddd, D MMMM (HH:mm)')
+      timeFormatted: dayjs().format('ddd, D MMMM (HH:mm)'),
+      sentimentScore: null,
+      sentimentIcon: null
     }
   );
 
@@ -112,7 +114,9 @@ io.on('connection', (socket) => {
       context: socket.id,
       isServerMessage: true,
       timestamp: new Date(),
-      timeFormatted: dayjs().format('ddd, D MMMM (HH:mm)')
+      timeFormatted: dayjs().format('ddd, D MMMM (HH:mm)'),
+      sentimentScore: null,
+      sentimentIcon: null
     }; 
     io.emit('chatMessage', outro);
   });
