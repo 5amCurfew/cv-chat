@@ -1,79 +1,16 @@
 const PORT = process.env.PORT || 3000;
-const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const fetch = require('node-fetch');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const dayjs = require('dayjs')
 
-console.log(__dirname);
-
 ///////////////////////////////
 // Tensorflow Toxicity & Sentiment models
 ///////////////////////////////
-const tf = require('@tensorflow/tfjs-node');
 const toxicity = require('@tensorflow-models/toxicity');
-
-//const sentimentMetadata = JSON.parse(fs.readFileSync(path.join(__dirname, '/server/lib/sentimentMetadata.json')))
-//const sentimentModel = tf.loadLayersModel(JSON.parse(fs.readFileSync(path.join(__dirname, '/server/lib/sentimentModel.json'))))
-
-const fetchSentimentMetadata = async () => {
-  try{
-    const m = await fetch(`https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/metadata.json`)
-    return m.json()
-  } catch(err){
-    console.log(err)
-  }
-}
-
-const fetchSentimentModel = async () => {
-  try{
-    const model = await tf.loadLayersModel(`https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/model.json`);
-    return model;
-  } catch(err){
-    console.log(err)
-  }
-};
-
-const padSequences = (sequences, metadata) => {
-  return sequences.map(seq => {
-    if (seq.length > metadata.max_len) {
-      seq.splice(0, seq.length - metadata.max_len);
-    }
-    if (seq.length < metadata.max_len) {
-      const pad = [];
-      for (let i = 0; i < metadata.max_len - seq.length; ++i) {
-        pad.push(0);
-      }
-      seq = pad.concat(seq);
-    }
-    return seq;
-  });
-}
-
-const predictSentiment = async (text) => {
-
-  const model = await fetchSentimentModel(); 
-  const metadata = await fetchSentimentMetadata();
-
-  const trimmed = text.trim().toLowerCase().replace(/(\.|\,|\!)/g, '').split(' ');
-  const sequence = trimmed.map(word => {
-    const wordIndex = metadata.word_index[word];
-    if (typeof wordIndex === 'undefined') {
-      return  2; //oov_index
-    }
-    return wordIndex + metadata.index_from;
-  });
-
-  const paddedSequence = padSequences([sequence], metadata);
-  const input = tf.tensor2d(paddedSequence, [1, metadata.max_len]);
-  const predictOut = model.predict(input);
-  const score = predictOut.dataSync()[0];
-  predictOut.dispose();
-  return score;
-}
+const Sentiment = require("./lib/Sentiment");
 
 ///////////////////////////////
 // SERVER
@@ -126,44 +63,51 @@ io.on('connection', (socket) => {
   ///////////////////////////////
   socket.on('chatMessage', (msg) => {
 
-    msg.timeFormatted = dayjs().format('ddd, D MMMM (HH:mm)')
-    msg.isServerMessage = false
+    msg.timeFormatted = dayjs().format('ddd, D MMMM (HH:mm)');
+    msg.isServerMessage = false;
 
     ///////////////////////////////
-    // Toxicity
+    // 1. Check if Toxic
     ///////////////////////////////
-    predictSentiment(msg.text)
-      .then((sentimentScore) => {
-        msg.sentimentScore = sentimentScore
-
-        if(msg.sentimentScore > 0.8){
-          msg.sentimentIcon = '&#128540;'
-        }else if(msg.sentimentScore > 0.4){
-          msg.sentimentIcon = '&#128528;'
-        }else{
-          msg.sentimentIcon = '&#128544;'
-        }
-
-      })
-      .then( () => {
-        toxicity.load(0.8)
-          .then(model => {
-            model.classify(msg.text).then(predictions => {
-    
-              let matches = predictions.filter( (p) => p.results[0].match === true );
-              msg.isToxic = matches.length > 0 ? true : false
-              console.log(msg)
-
-              if(msg.isToxic){
-                msg.text = String.fromCodePoint(0x1F6AB).repeat(3);
-                io.emit('chatMessage', msg);
-              } else{
-                io.emit('chatMessage', msg);
-              }
-              
-            })
-          })
-      })
+    toxicity.load(0.8)
+    .then( (model) => {
+      model.classify(msg.text)
+        .then( (predictions) => {
+            let matches = predictions.filter( (p) => p.results[0].match === true );
+            msg.isToxic = matches.length > 0 ? true : false
+            msg.textFinal = msg.isToxic ? String.fromCodePoint(0x1F6AB).repeat(3) : msg.text
+          }
+        )
+      }
+    )
+    ///////////////////////////////
+    // 2. Add Sentiment
+    ///////////////////////////////
+    .then( () => {
+      Sentiment.predict(msg.text)
+        .then( (sentimentScore) => {
+            msg.sentimentScore = sentimentScore
+            if(msg.sentimentScore > 0.75){
+              msg.sentimentIcon = '&#128540;'
+            }else if(msg.sentimentScore > 0.35){
+              msg.sentimentIcon = '&#128528;'
+            }else{
+              msg.sentimentIcon = '&#128544;'
+            }
+            console.log(msg)
+            io.emit('chatMessage', msg);
+          }
+        )
+        .catch( () => {
+            console.log('--- ERROR Sentiment.predict() (Skipping) ---')
+            msg.sentimentScore = null;
+            msg.sentimentIcon = '&#128173;'
+            console.log(msg)
+            io.emit('chatMessage', msg);
+          }
+        )
+      } 
+    )
 
   });
 
