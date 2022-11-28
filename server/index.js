@@ -101,9 +101,7 @@ io.on('connection', (socket) => {
     msg.timeFormatted = dayjs().format('ddd, D MMMM (HH:mm)');
     msg.isServerMessage = false;
 
-    console.log('--- evaluateToxicity() ---');
     await evaluateToxicity(msg);
-    console.log('--- evaluateSentiment() ---');
     await evaluateSentiment(msg);
 
     console.log(msg);

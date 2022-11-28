@@ -1,6 +1,9 @@
 {
   "name": "cv-chat",
   "version": "1.0.0",
+  "engines" : { 
+    "npm" : "14.17.0"
+  },
   "description": "",
   "main": "server/index.js",
   "scripts": {
