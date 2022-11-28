@@ -9,8 +9,43 @@ const dayjs = require('dayjs')
 ///////////////////////////////
 // Tensorflow Toxicity & Sentiment models
 ///////////////////////////////
-const toxicity = require('@tensorflow-models/toxicity');
+const Toxicity = require('@tensorflow-models/toxicity');
 const Sentiment = require("./lib/Sentiment");
+
+const evaluateToxicity = async (msg) => {
+  try{
+    const model = await Toxicity.load(0.8)
+    const predictions = await model.classify(msg.text)
+    let matches = predictions.filter( (p) => p.results[0].match === true );
+    msg.isToxic = matches.length > 0 ? true : false
+    msg.textFinal = msg.isToxic ? String.fromCodePoint(0x1F6AB).repeat(3) : msg.text
+  }catch(error){
+    console.log('--- ERROR evaluateToxicity() (Skipping) ---')
+    msg.isToxic = null
+    msg.textFinal = msg.text
+    console.error(error)
+  }
+}
+
+const evaluateSentiment = async (msg) => {
+  try{
+    const sentimentScore = await Sentiment.predict(msg.text)
+    msg.sentimentScore = sentimentScore
+    if(msg.sentimentScore > 0.75){
+      msg.sentimentIcon = '&#128540;'
+    }else if(msg.sentimentScore > 0.35){
+      msg.sentimentIcon = '&#128528;'
+    }else{
+      msg.sentimentIcon = '&#128544;'
+    }
+  } catch(error){
+    console.log('--- ERROR Sentiment.predict() (Skipping) ---')
+    msg.sentimentScore = null;
+    msg.sentimentIcon = '&#128173;'
+    console.error(error)
+  }
+}
+
 
 ///////////////////////////////
 // SERVER
@@ -61,53 +96,19 @@ io.on('connection', (socket) => {
   ///////////////////////////////
   // RECEIVE chatMessage from CLIENT THEN ...
   ///////////////////////////////
-  socket.on('chatMessage', (msg) => {
+  socket.on('chatMessage', async (msg) => {
 
     msg.timeFormatted = dayjs().format('ddd, D MMMM (HH:mm)');
     msg.isServerMessage = false;
 
-    ///////////////////////////////
-    // 1. Check if Toxic
-    ///////////////////////////////
-    toxicity.load(0.8)
-    .then( (model) => {
-      model.classify(msg.text)
-        .then( (predictions) => {
-            let matches = predictions.filter( (p) => p.results[0].match === true );
-            msg.isToxic = matches.length > 0 ? true : false
-            msg.textFinal = msg.isToxic ? String.fromCodePoint(0x1F6AB).repeat(3) : msg.text
-          }
-        )
-      }
-    )
-    ///////////////////////////////
-    // 2. Add Sentiment
-    ///////////////////////////////
-    .then( () => {
-      Sentiment.predict(msg.text)
-        .then( (sentimentScore) => {
-            msg.sentimentScore = sentimentScore
-            if(msg.sentimentScore > 0.75){
-              msg.sentimentIcon = '&#128540;'
-            }else if(msg.sentimentScore > 0.35){
-              msg.sentimentIcon = '&#128528;'
-            }else{
-              msg.sentimentIcon = '&#128544;'
-            }
-            console.log(msg)
-            io.emit('chatMessage', msg);
-          }
-        )
-        .catch( () => {
-            console.log('--- ERROR Sentiment.predict() (Skipping) ---')
-            msg.sentimentScore = null;
-            msg.sentimentIcon = '&#128173;'
-            console.log(msg)
-            io.emit('chatMessage', msg);
-          }
-        )
-      } 
-    )
+    console.log('--- evaluateToxicity() ---');
+    await evaluateToxicity(msg);
+    console.log('--- evaluateSentiment() ---');
+    await evaluateSentiment(msg);
+
+    console.log(msg);
+
+    io.emit('chatMessage', msg)
 
   });
 
