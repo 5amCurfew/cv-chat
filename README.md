@@ -4,7 +4,7 @@
       ██║     ██║   ██║    ██║     ███████║███████║   ██║ 
       ██║     ╚██╗ ██╔╝    ██║     ██╔══██║██╔══██║   ██║
       ╚██████╗ ╚████╔╝     ╚██████╗██║  ██║██║  ██║   ██║
-       ╚═════╝  ╚═══╝       ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝                                                                              
+       ╚═════╝  ╚═══╝       ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝
 ```
 
 `cv-chat` is a chat-room built in Node.js that blocks toxic messages and evaluates sentiment using Tensorflow.js models
